@@ -1,0 +1,62 @@
+class BallGalaxy(mode)
+	private
+		toSum = [0, 0, 0];
+		displacement = [0, 0, 0];
+		distance = 0;
+	end
+	switch mode
+		case "Init"
+			// // Binary-star
+			create Ball ([-1,0,0],       [0,-0.5,0], [0,0,0], [0,0,0], 2, 0.1, [1,0,0]);
+			create Ball ([1,0,0], [0,0.5,0], [0,0,0], [0,0,0], 2, 0.1, [0,1,0]);
+
+			// earth-moon
+			// create Ball ([0, 0, 0], [0,0,0], [0,0,0], [0,0,0], 1000, 0.5, [1,0,0]);
+			// create Ball ([2, 0, 0],	[0,20,0], [0,0,0], [0,0,0], 1, 0.1, [0,1,0]);
+			// create Ball ([2.1,0,0], [0,0.01,0], [0,0,0], [0,0,0], 0.1, 0.1, [0,0,1]);
+			//create Ball ([4,1,1.5],     [0,30,0],   [0,0,0], [0,0,0], 1);
+			//create Ball ([-5,1,-1.5],   [0,-30,0],  [0,0,0], [0,0,0], 2);
+			//create Ball ([1,-10,1],     [40,0,0],   [0,0,0], [0,0,0], 3);
+			mode = "Constellate"
+		case "Constellate"
+			for c1 = children
+				toSum = [0, 0, 0];
+				for c2 = children
+					if not(c1 == c2)
+						displacement = c2.p - c1.p;
+						distance = norm(displacement);
+						if distance < c1.r+c2.r
+							// toSum = toSum - 200*(c1.r+c2.r-distance)*displacement/distance
+							toSum = toSum - 100*norm(c1.p')*displacement/distance
+						else
+							toSum = toSum + c2.m * displacement / (distance) ^ 3
+						end
+					end
+				end;
+				c1.force = toSum
+			end;
+	end
+end
+
+class Ball(p,p',p'', force, m, r, color)
+	private
+		_3D = ["Sphere",p, r, color,[0,0,0]]
+	end
+
+	_3D [=] ["Sphere",p, r, color,[0,0,0]];
+	p'' [=] force
+end
+
+class Main(simulator)
+	private
+		mode = "Init"
+	end
+	switch mode
+		case "Init"
+			simulator.timeStep = 0.01;
+			simulator.endTime = 10;
+			create BallGalaxy("Init");
+			mode = "Persist"
+		case "Persist"
+	end
+end
