@@ -3,12 +3,15 @@ class BallGalaxy(mode)
 		toSum = [0, 0, 0];
 		displacement = [0, 0, 0];
 		distance = 0;
+		dummy = [0, 0, 0];
 	end
 	switch mode
 		case "Init"
 			// // Binary-star
-			create Ball ([-1,0,0],       [0,-0.5,0], [0,0,0], [0,0,0], 2, 0.1, [1,0,0]);
-			create Ball ([1,0,0], [0,0.5,0], [0,0,0], [0,0,0], 2, 0.1, [0,1,0]);
+			create Ball ([-1,0,0],       [0,0,-0.5], [0,0,0], [0,0,0], 2, 0.1, [1,0,0]);
+			create Ball ([0,0,0], [0,0,0], [0,0,0], [0,0,0], 2, 0.1, [0,1,0]);
+			create Ball ([1,0,0], [0,0,0.5], [0,0,0], [0,0,0], 2, 0.1, [0,1,0]);
+			//create Ball ([3,0,0], [0,0,0.5], [0,0,0], [0,0,0], 2, 0.1, [0,1,0]);
 
 			// earth-moon
 			// create Ball ([0, 0, 0], [0,0,0], [0,0,0], [0,0,0], 1000, 0.5, [1,0,0]);
@@ -25,11 +28,24 @@ class BallGalaxy(mode)
 					if not(c1 == c2)
 						displacement = c2.p - c1.p;
 						distance = norm(displacement);
-						if distance < c1.r+c2.r
-							// toSum = toSum - 200*(c1.r+c2.r-distance)*displacement/distance
-							toSum = toSum - 100*norm(c1.p')*displacement/distance
-						else
+						if distance > c1.r+c2.r
 							toSum = toSum + c2.m * displacement / (distance) ^ 3
+						end
+					end
+				end;
+				for c2 = children
+					if not(c1 == c2)
+						displacement = c2.p - c1.p;
+						distance = norm(displacement);
+						if distance < c1.r+c2.r
+							if dot(toSum, displacement/distance) > 0
+								toSum = toSum - dot(toSum, displacement/distance)*displacement/distance
+							end;
+							if dot(c1.p', displacement/distance) > 0
+								c1.p' = c1.p' - dot(c1.p', displacement/distance)*displacement/distance
+							end;
+							// Update its position so that we can skip this if in this iteration
+							c1.p = c1.p - (((c1.r+c2.r) - distance ))*(displacement/distance);
 						end
 					end
 				end;
@@ -53,8 +69,8 @@ class Main(simulator)
 	end
 	switch mode
 		case "Init"
-			simulator.timeStep = 0.01;
-			simulator.endTime = 10;
+			simulator.timeStep = 0.001;
+			simulator.endTime = 3;
 			create BallGalaxy("Init");
 			mode = "Persist"
 		case "Persist"
